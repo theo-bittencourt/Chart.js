@@ -78,7 +78,7 @@ window.Chart = function(context){
       if (t==1) return 1;
       if ((t/=1/2) < 1) return 1/2 * Math.pow(2, 10 * (t - 1));
       return 1/2 * (-Math.pow(2, -10 * --t) + 2);
-      },
+    },
     easeInCirc: function (t) {
       if (t>=1) return t;
       return -1 * (Math.sqrt(1 - (t/=1)*t) - 1);
@@ -148,7 +148,6 @@ window.Chart = function(context){
   //Variables global to the chart
   var width = context.canvas.width;
   var height = context.canvas.height;
-
 
   //High pixel density displays - multiply the size of the canvas height/width by the device pixel ratio, then scale.
   if (window.devicePixelRatio) {
@@ -1030,9 +1029,10 @@ window.Chart = function(context){
       ctx.stroke();
       ctx.textAlign = "center";
       ctx.fillStyle = config.scaleFontColor;
+      drawLabels();
       for (var j=0; j<data.labels.length; j++){
         ctx.beginPath();
-        ctx.moveTo(yAxisPosX ,xAxisPosY -((j+1) * valueHop));
+        ctx.moveTo(yAxisPosX, xAxisPosY - ((j+1) * valueHop));
         if (config.scaleShowGridLines){
           ctx.lineWidth = config.scaleGridLineWidth;
           ctx.strokeStyle = config.scaleGridLineColor;
@@ -1041,9 +1041,7 @@ window.Chart = function(context){
         else{
           ctx.lineTo(yAxisPosX-2,xAxisPosY - ((j+1) * valueHop));
         }
-
         ctx.stroke();
-        ctx.fillText(data.labels[j],yAxisPosX - widestXLabel/2,xAxisPosY - ((j+1) * valueHop)+(data.datasets.length*barWidth)/2);
       }
 
       //Y axis
@@ -1070,6 +1068,28 @@ window.Chart = function(context){
           ctx.strokeStyle = config.scaleGridLineColor;
           ctx.lineTo(yAxisPosX + (i) * scaleHop, height - yAxisLength -20);
         ctx.stroke();
+      }
+    }
+
+    function drawLabels(){
+      for (var j=0; j < data.labels.length; j++) {
+        var text   = data.labels[j];
+
+        if (config.scaleLabelsPosition === 'top') {
+          config.scaleLineColor     = 'rgba(0,0,0,0)'
+          config.scaleShowGridLines = false
+          ctx.textAlign             = "left";
+          ctx.textBaseline          = "bottom";
+
+          var xValue = 0;
+          var yValue = xAxisPosY - 22 - (config.barValueSpacing + valueHop*j);
+        }
+        else {
+          var xValue = yAxisPosX - widestXLabel / 2;
+          var yValue = xAxisPosY - ((j+1) * valueHop) + (data.datasets.length*barWidth) / 2;
+        }
+
+        ctx.fillText(text, xValue, yValue);
       }
     }
 
@@ -1104,12 +1124,10 @@ window.Chart = function(context){
         longestText +=10;
       }
       yAxisLength = height - 30;
-      valueHop = Math.floor(yAxisLength/(data.labels.length));
-
-      barWidth = (valueHop - config.scaleGridLineWidth*2 - (config.barValueSpacing*2) - (config.barDatasetSpacing*data.datasets.length) - ((config.barStrokeWidth/2)*data.datasets.length))/data.datasets.length;
-
-      xAxisPosY = height - config.scaleFontSize - 10 ;
-      yAxisPosX = width - maxSize ;
+      valueHop    = Math.floor(yAxisLength/(data.labels.length));
+      barWidth    = (valueHop - config.scaleGridLineWidth*2 - (config.barValueSpacing*2) - (config.barDatasetSpacing*data.datasets.length) - ((config.barStrokeWidth/2)*data.datasets.length))/data.datasets.length;
+      xAxisPosY   = height - config.scaleFontSize - 10 ;
+      yAxisPosX   = width - maxSize ;
     }
 
     function getValueBounds() {
@@ -1137,7 +1155,6 @@ window.Chart = function(context){
       labelSize = 40;
       yMargin = labelSize + 10
 
-
       //Need to check the X axis first - measure the length of each text metric, and figure out if we need to rotate by 45 degrees.
       ctx.font = config.scaleFontStyle + " " + config.scaleFontSize+"px " + config.scaleFontFamily;
       widestXLabel = 1;config.scaleFontSize
@@ -1151,8 +1168,14 @@ window.Chart = function(context){
       labelHeight = (widestXLabel/labelSize) * config.scaleFontSize;
 
       //Add a little padding between the x line and the text
-      maxSize = width - (widestXLabel);
-      maxSize -= 5;
+      if (config.scaleLabelsPosition === 'top') {
+        maxSize = width;
+      }
+      else {
+        maxSize = width - (widestXLabel);
+        maxSize -= 5;
+      }
+
       scaleHeight = maxSize;
       //Then get the area above we can safely draw on.
     }
@@ -1369,8 +1392,6 @@ window.Chart = function(context){
       easingFunction = animationOptions[config.animationEasing],
       percentAnimComplete =(config.animation)? 0 : 1;
 
-
-
     if (typeof drawScale !== "function") drawScale = function(){};
 
     requestAnimFrame(animLoop);
@@ -1386,6 +1407,7 @@ window.Chart = function(context){
         drawData(easeAdjustedAnimationPercent);
       }
     }
+
     function animLoop(){
       //We need to check if the animation is incomplete (less than 1), or complete (1).
         percentAnimComplete += animFrameAmount;
@@ -1397,9 +1419,7 @@ window.Chart = function(context){
         else{
           if (typeof config.onAnimationComplete == "function") config.onAnimationComplete();
         }
-
     }
-
   }
 
   //Declare global functions to be called within this namespace here.
@@ -1450,11 +1470,10 @@ window.Chart = function(context){
           populateLabels(labelTemplateString, labels, numberOfSteps, graphMin, stepValue);
 
           return {
-            steps : numberOfSteps,
-        stepValue : stepValue,
-        graphMin : graphMin,
-        labels : labels
-
+            steps:     numberOfSteps,
+            stepValue: stepValue,
+            graphMin:  graphMin,
+            labels:    labels
           }
 
       function calculateOrderOfMagnitude(val){
@@ -1514,7 +1533,6 @@ window.Chart = function(context){
     else{
       return 0;
     }
-
   }
 
   function mergeChartConfig(defaults,userDefined){
